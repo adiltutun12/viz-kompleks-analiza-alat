@@ -17,7 +17,32 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
 
-  const handleUrlSubmit = (e: React.FormEvent) => {
+  const validateUrl = async (urlToValidate: string): Promise<boolean> => {
+    try {
+      // First check URL format
+      new URL(urlToValidate);
+      
+      // Then check if URL is reachable
+      const response = await fetch(urlToValidate, { 
+        method: 'HEAD',
+        mode: 'no-cors' // Allow cross-origin requests
+      });
+      return true;
+    } catch (error) {
+      // If HEAD fails, try a simple fetch to see if we get any response
+      try {
+        await fetch(urlToValidate, { 
+          method: 'GET',
+          mode: 'no-cors'
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  };
+
+  const handleUrlSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) {
       toast({
@@ -28,17 +53,35 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
       return;
     }
     
-    // Basic URL validation
+    // Basic URL format validation
     try {
       new URL(url);
-      onAnalyze({ type: 'url', content: url });
     } catch {
       toast({
         title: "Nevalidan URL",
         description: "Molimo unesite validan URL (npr. https://example.com)",
         variant: "destructive"
       });
+      return;
     }
+
+    // Check if URL is reachable
+    toast({
+      title: "Provjeravanje URL-a...",
+      description: "Molimo sačekajte dok provjeravamo da li stranica postoji"
+    });
+
+    const isValidUrl = await validateUrl(url);
+    if (!isValidUrl) {
+      toast({
+        title: "Stranica nije dostupna",
+        description: "URL koji ste unijeli nije dostupan ili ne postoji. Molimo provjerite adresu.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    onAnalyze({ type: 'url', content: url });
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
