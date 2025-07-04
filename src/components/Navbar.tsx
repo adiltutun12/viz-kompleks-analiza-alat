@@ -1,6 +1,7 @@
-import { BarChart3, FileText, Settings } from "lucide-react";
+import { BarChart3, FileText } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const Navbar = () => {
   return (
@@ -50,12 +51,47 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="icon">
-              <FileText className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon">
-              <Settings className="h-4 w-4" />
-            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <FileText className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>O aplikaciji - WebComplexity Analyzer</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <h3 className="font-semibold mb-2">Šta ova aplikacija radi:</h3>
+                    <p className="text-muted-foreground">
+                      WebComplexity Analyzer je alat za kvantitativnu analizu vizualne kompleksnosti web stranica. 
+                      Koristi različite metrike poput broja DOM elemenata, dubine strukture, tipografije i interakcija 
+                      da bi dao numeričku ocenu kompleksnosti stranice (0-100).
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold mb-2">Funkcionalnosti:</h3>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                      <li><strong>Analiza:</strong> Analiziraj pojedinačne stranice putem URL-a ili upload HTML fajla</li>
+                      <li><strong>Poređenje:</strong> Uporedi kompleksnost više stranica istovremeno</li>
+                      <li><strong>Rezultati:</strong> Pregled istorije prethodnih analiza</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold mb-2">Metrike koje se analiziraju:</h3>
+                    <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                      <li>DOM struktura (broj elemenata, dubina)</li>
+                      <li>Vizualni sadržaj (slike, boje, fontovi)</li>
+                      <li>Layout kompleksnost (grid, flexbox)</li>
+                      <li>Interakcije (klikabilni elementi, forme)</li>
+                    </ul>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </div>

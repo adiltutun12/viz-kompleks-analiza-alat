@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import AnalysisForm from "@/components/AnalysisForm";
 import MetricsCard from "@/components/MetricsCard";
@@ -8,6 +8,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Compare = () => {
   const [sites, setSites] = useState<Array<{ url: string; metrics: ComplexityMetrics }>>([]);
+
+  // Load saved sites from localStorage on component mount
+  useEffect(() => {
+    const savedSites = localStorage.getItem('comparedSites');
+    if (savedSites) {
+      try {
+        setSites(JSON.parse(savedSites));
+      } catch (error) {
+        console.error('Error loading saved sites:', error);
+      }
+    }
+  }, []);
+
+  // Save sites to localStorage whenever sites change
+  useEffect(() => {
+    localStorage.setItem('comparedSites', JSON.stringify(sites));
+  }, [sites]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   const analyzer = new ComplexityAnalyzer();
