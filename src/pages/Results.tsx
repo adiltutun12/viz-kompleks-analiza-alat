@@ -51,7 +51,7 @@ const Results = () => {
             Sačuvani Rezultati
           </h1>
           <p className="text-muted-foreground text-lg">
-            Pregled istorije analiza kompleksnosti
+            Pregled historije analiza kompleksnosti
           </p>
         </div>
 

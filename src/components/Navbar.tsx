@@ -37,16 +37,6 @@ const Navbar = () => {
               >
                 Poređenje
               </NavLink>
-              <NavLink
-                to="/results"
-                className={({ isActive }) =>
-                  `text-sm font-medium transition-colors hover:text-primary ${
-                    isActive ? "text-primary" : "text-muted-foreground"
-                  }`
-                }
-              >
-                Rezultati
-              </NavLink>
             </div>
           </div>
 
@@ -65,9 +55,9 @@ const Navbar = () => {
                   <div>
                     <h3 className="font-semibold mb-2">Šta ova aplikacija radi:</h3>
                     <p className="text-muted-foreground">
-                      WebComplexity Analyzer je alat za kvantitativnu analizu vizualne kompleksnosti web stranica. 
+                      WebComplexity Analyzer je alat za kvantitativnu analizu vizuelne kompleksnosti web stranica. 
                       Koristi različite metrike poput broja DOM elemenata, dubine strukture, tipografije i interakcija 
-                      da bi dao numeričku ocenu kompleksnosti stranice (0-100).
+                      da bi dao numeričku ocjenu kompleksnosti stranice (0-100).
                     </p>
                   </div>
                   
@@ -76,7 +66,6 @@ const Navbar = () => {
                     <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                       <li><strong>Analiza:</strong> Analiziraj pojedinačne stranice putem URL-a ili upload HTML fajla</li>
                       <li><strong>Poređenje:</strong> Uporedi kompleksnost više stranica istovremeno</li>
-                      <li><strong>Rezultati:</strong> Pregled istorije prethodnih analiza</li>
                     </ul>
                   </div>
 

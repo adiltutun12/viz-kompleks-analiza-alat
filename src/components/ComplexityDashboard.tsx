@@ -82,7 +82,7 @@ const ComplexityDashboard = ({ metrics, url }: ComplexityDashboardProps) => {
           value={metrics.domDepth}
           maxValue={25}
           icon={<TreePine className="h-4 w-4" />}
-          description="Maksimalna dubina ugneždavanja elemenata"
+          description="Maksimalna dubina ugnježdavanja elemenata"
           variant={metrics.domDepth > 15 ? "warning" : "default"}
         />
         
@@ -109,7 +109,7 @@ const ComplexityDashboard = ({ metrics, url }: ComplexityDashboardProps) => {
           maxValue={0.1}
           unit=""
           icon={<TreePine className="h-4 w-4" />}
-          description="Prosečan broj dece po elementu"
+          description="Prosječan broj djece po elementu"
         />
 
         {/* Visual Content */}
@@ -145,7 +145,7 @@ const ComplexityDashboard = ({ metrics, url }: ComplexityDashboardProps) => {
           value={metrics.cssRules}
           maxValue={500}
           icon={<Layout className="h-4 w-4" />}
-          description="Procenjen broj CSS pravila"
+          description="Procijenjen broj CSS pravila"
           variant={metrics.cssRules > 300 ? "warning" : "default"}
         />
         
@@ -154,7 +154,7 @@ const ComplexityDashboard = ({ metrics, url }: ComplexityDashboardProps) => {
           value={metrics.layoutElements}
           maxValue={100}
           icon={<Layout className="h-4 w-4" />}
-          description="Elementi sa complex layout włašćnostima"
+          description="Elementi složenog izgleda"
         />
         
         <MetricsCard
@@ -233,7 +233,7 @@ const ComplexityDashboard = ({ metrics, url }: ComplexityDashboardProps) => {
         <CardHeader>
           <CardTitle>Analiza i Preporuke</CardTitle>
           <CardDescription>
-            Interpretacija rezultata i predlozi za poboljšanje
+            Interpretacija rezultata i prijedlozi za poboljšanje
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -262,13 +262,13 @@ const ComplexityDashboard = ({ metrics, url }: ComplexityDashboardProps) => {
                   <li>• Poboljšajte kontrast boja</li>
                 )}
                 {metrics.domDepth > 15 && (
-                  <li>• Smanite ugneždavanje elemenata</li>
+                  <li>• Smanjite ugnježdavanje elemenata</li>
                 )}
                 {metrics.fontFamilies > 5 && (
                   <li>• Ograničite broj fontova</li>
                 )}
                 {metrics.totalElements > 500 && (
-                  <li>• Razmotriti podelu na manje stranica</li>
+                  <li>• Razmotriti podjelu na manje stranica</li>
                 )}
               </ul>
             </div>
