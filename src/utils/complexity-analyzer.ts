@@ -36,8 +36,7 @@ export class ComplexityAnalyzer {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
-          },
-          timeout: 10000 // 10 sekundi timeout
+          }
         });
         
         if (!response.ok) {
