@@ -27,10 +27,9 @@ export class ComplexityAnalyzer {
   }
   
   async analyzeFromUrl(url: string): Promise<ComplexityMetrics> {
-    // Pokušaj 3 puta sa backend serverom
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
-        console.log(`🔄 Pokušaj ${attempt}/3 za dohvaćanje ${url}`);
+        console.log(`Pokušaj ${attempt}/3 za dohvaćanje ${url}`);
         
         const response = await fetch(`http://localhost:3001/api/proxy?url=${encodeURIComponent(url)}`, {
           method: 'GET',
@@ -47,24 +46,24 @@ export class ComplexityAnalyzer {
         const data = await response.json();
         
         if (data.success && data.html) {
-          console.log(`✅ Backend uspješno dohvatio HTML (${data.html.length} znakova)`);
+          console.log(`Backend uspješno dohvatio HTML (${data.html.length} znakova)`);
           return this.analyzeFromHtml(data.html);
         } else {
           throw new Error(data.error || 'Backend returned no HTML data');
         }
       } catch (error) {
-        console.error(`❌ Pokušaj ${attempt}/3 neuspješan:`, error.message);
+        console.error(`Pokušaj ${attempt}/3 neuspješan:`, error.message);
         
-        // Ako nije zadnji pokušaj, čekaj prije novog pokušaja
+        // Ako nije zadnji pokušaj, čekam prije novog pokušaja
         if (attempt < 3) {
-          console.log(`⏳ Čekam ${attempt} sekunde prije novog pokušaja...`);
+          console.log(`Čekam ${attempt} sekunde prije novog pokušaja...`);
           await new Promise(resolve => setTimeout(resolve, attempt * 1000));
         }
       }
     }
     
-    // Svi pokušaji neuspješni - koristi mock podatke
-    console.error('❌ Svi pokušaji neuspješni, koristim mock podatke');
+    // Svi pokušaji neuspješni - koristim mock podatke
+    console.error('Svi pokušaji neuspješni, koristim mock podatke');
     return this.createMockData(url);
   }
   
@@ -74,7 +73,7 @@ export class ComplexityAnalyzer {
   }
   
   private calculateRealMetrics(doc: Document): ComplexityMetrics {
-    console.log('🔍 Analiziram stvarni HTML...');
+    console.log('Analiziram stvarni HTML...');
     
     // DOM osnovni podaci
     const allElements = doc.querySelectorAll('*');
@@ -92,7 +91,7 @@ export class ComplexityAnalyzer {
     
     const imageCount = imgTags + svgElements + backgroundElements + pictureElements + videoElements;
     
-    console.log(`📊 Slike: IMG=${imgTags} SVG=${svgElements} BG=${backgroundElements} PICTURE=${pictureElements} VIDEO=${videoElements} TOTAL=${imageCount}`);
+    console.log(`Slike: IMG=${imgTags} SVG=${svgElements} BG=${backgroundElements} PICTURE=${pictureElements} VIDEO=${videoElements} TOTAL=${imageCount}`);
     
     // TEKST
     const textLength = doc.body?.textContent?.length || 0;
@@ -122,7 +121,7 @@ export class ComplexityAnalyzer {
       colorCount, contrastIssues
     });
     
-    console.log(`🎯 Finalni skor: ${complexityScore}`);
+    console.log(`Finalni skor: ${complexityScore}`);
     
     return {
       domDepth, totalElements, elementTypes, nestingRatio, imageCount,
@@ -172,7 +171,6 @@ export class ComplexityAnalyzer {
     return score;
   }
   
-  // MOCK PODACI - koriste se samo kad backend ne radi
   private createMockData(url: string): ComplexityMetrics {
     const hash = this.hash(url);
     const factor = (hash % 100) / 100; // 0-1
@@ -180,7 +178,7 @@ export class ComplexityAnalyzer {
     // Prilagodi na osnovu URL-a
     let multiplier = 0.5;
     const urlLower = url.toLowerCase();
-    if (urlLower.includes('olx') || urlLower.includes('shop')) multiplier = 0.8;
+    if (urlLower.includes('shop')) multiplier = 0.8;
     if (urlLower.includes('google')) multiplier = 0.3;
     if (urlLower.includes('github')) multiplier = 0.6;
     

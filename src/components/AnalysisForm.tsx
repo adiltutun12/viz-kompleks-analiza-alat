@@ -153,7 +153,7 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
     } catch {
       toast({
         title: "Nevalidan URL format",
-        description: "Molimo unesite valjan URL (npr. example.com ili https://example.com)",
+        description: "Molimo unesite valjan URL (npr. https://avaz.ba)",
         variant: "destructive"
       });
       return;
@@ -214,7 +214,7 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
       setIsValidatingUrl(false);
     }
 
-    // Ako je URL valjan, nastavi s analizom
+    // Ako je URL okej, nastavi s analizom tako jeeeeeeeee
     onAnalyze({ type: 'url', content: formattedUrl });
   };
 
@@ -250,7 +250,6 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
     });
   };
 
-  // Nova funkcija za analizu fajla
   const handleFileAnalyze = () => {
     if (!selectedFile) return;
     
@@ -362,7 +361,7 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
                     <Input
                       id="url"
                       type="url"
-                      placeholder="https://example.com ili example.com"
+                      placeholder="npr. https://avaz.ba"
                       value={url}
                       onChange={(e) => handleUrlChange(e.target.value)}
                       disabled={isUrlDisabled}
@@ -393,21 +392,6 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
                   )}
                 </Button>
               </form>
-              
-              {/* Status indikator za backend konekciju */}
-              <div className="text-xs text-muted-foreground text-center p-2 bg-muted/50 rounded">
-                Backend server: http://localhost:3001
-              </div>
-              
-              <div className="text-sm text-muted-foreground mt-4 p-3 bg-muted rounded-lg">
-                <p className="font-semibold">Primjeri valjanih URL-ova:</p>
-                <ul className="list-disc pl-5 mt-1 space-y-1">
-                  <li>https://www.klix.ba</li>
-                  <li>klix.ba (automatski dodaje https://)</li>
-                  <li>https://example.com</li>
-                  <li>google.com</li>
-                </ul>
-              </div>
             </TabsContent>
             
             <TabsContent value="file" className="space-y-6">
