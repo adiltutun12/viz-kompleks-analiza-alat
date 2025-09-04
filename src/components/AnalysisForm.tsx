@@ -19,6 +19,7 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
   // Dodaj state za detaljniji status
   const [urlStatus, setUrlStatus] = useState<'idle' | 'checking' | 'valid' | 'invalid'>('idle');
   const [urlStatusDetails, setUrlStatusDetails] = useState<{message?: string, status?: number}>({});
+  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
   // Funkcija za validaciju URL-a preko backend API-ja
@@ -96,41 +97,81 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
     }
   };
 
-  // Real-time URL validacija
+  // Real-time URL validacija s ispravnim debounce
   const handleUrlChange = async (newUrl: string) => {
     setUrl(newUrl);
     
+    // Očisti postojeći timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+    
     if (!newUrl.trim()) {
       setUrlStatus('idle');
+      setUrlStatusDetails({});
       return;
     }
 
     // Osnovni format check
     let formattedUrl = newUrl.trim();
+    
+    // Ako korisnik samo kuca "https" ili "http", ne dodavaj protokol
+    if (formattedUrl === 'https' || formattedUrl === 'http') {
+      setUrlStatus('invalid');
+      setUrlStatusDetails({ message: "nevaljan_format" });
+      return;
+    }
+
     if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
       formattedUrl = 'https://' + formattedUrl;
     }
 
-    try {
-      new URL(formattedUrl);
-    } catch {
+    // Provjeri da nije dupli protokol
+    if (formattedUrl === 'https://https' || formattedUrl === 'http://https' || 
+        formattedUrl === 'https://http' || formattedUrl === 'http://http') {
       setUrlStatus('invalid');
+      setUrlStatusDetails({ message: "nevaljan_format" });
       return;
     }
 
-    // Debounce validaciju
-    setTimeout(async () => {
-      if (url === newUrl) { // Provjeri da korisnik još uvijek kuca isti URL
-        setUrlStatus('checking');
+    try {
+      const urlObj = new URL(formattedUrl);
+      // Dodatna provjera - mora imati barem neki hostname
+      if (!urlObj.hostname || urlObj.hostname.length < 2) {
+        setUrlStatus('invalid');
+        setUrlStatusDetails({ message: "nevaljan_format" });
+        return;
+      }
+    } catch {
+      setUrlStatus('invalid');
+      setUrlStatusDetails({ message: "nevaljan_format" });
+      return;
+    }
+
+    // Postavi novi timer za debounce validaciju
+    const timer = setTimeout(async () => {
+      setUrlStatus('checking');
+      try {
         const result = await validateUrl(formattedUrl);
         setUrlStatus(result.valid ? 'valid' : 'invalid');
         setUrlStatusDetails({ message: result.message, status: result.status });
+      } catch (error) {
+        setUrlStatus('invalid');
+        setUrlStatusDetails({ message: "greska_validacije" });
       }
     }, 1000);
+    
+    setDebounceTimer(timer);
   };
 
   const handleUrlSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Očisti postojeći timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+      setDebounceTimer(null);
+    }
     
     if (!url.trim()) {
       toast({
@@ -143,25 +184,65 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
     
     // Osnovna validacija formata URL-a
     let formattedUrl = url.trim();
+    
+    // Ako korisnik samo kuca "https" ili "http", prikaži grešku
+    if (formattedUrl === 'https' || formattedUrl === 'http') {
+      toast({
+        title: "Nevalidan URL format",
+        description: "Molimo unesite kompletan URL (npr. avaz.ba)",
+        variant: "destructive"
+      });
+      setUrlStatus('invalid');
+      setUrlStatusDetails({ message: "nevaljan_format" });
+      return;
+    }
+    
     if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
       formattedUrl = 'https://' + formattedUrl;
     }
+
+    // Provjeri da nije dupli protokol
+    if (formattedUrl === 'https://https' || formattedUrl === 'http://https' || 
+        formattedUrl === 'https://http' || formattedUrl === 'http://http') {
+      toast({
+        title: "Nevalidan URL format",
+        description: "Molimo unesite kompletan URL (npr. avaz.ba)",
+        variant: "destructive"
+      });
+      setUrlStatus('invalid');
+      setUrlStatusDetails({ message: "nevaljan_format" });
+      return;
+    }
     
     try {
-      new URL(formattedUrl);
+      const urlObj = new URL(formattedUrl);
+      // Dodatna provjera - mora imati barem neki hostname
+      if (!urlObj.hostname || urlObj.hostname.length < 2) {
+        toast({
+          title: "Nevalidan URL format",
+          description: "Molimo unesite valjan URL (npr. avaz.ba)",
+          variant: "destructive"
+        });
+        setUrlStatus('invalid');
+        setUrlStatusDetails({ message: "nevaljan_format" });
+        return;
+      }
       setUrl(formattedUrl);
     } catch {
       toast({
         title: "Nevalidan URL format",
-        description: "Molimo unesite valjan URL (npr. https://avaz.ba)",
+        description: "Molimo unesite valjan URL (npr. avaz.ba)",
         variant: "destructive"
       });
+      setUrlStatus('invalid');
+      setUrlStatusDetails({ message: "nevaljan_format" });
       return;
     }
 
-    // Ako već nije validiran, validiraj sada
+    // Ako već nije validiran ili je provjera u toku, validiraj sada
     if (urlStatus !== 'valid') {
       setIsValidatingUrl(true);
+      setUrlStatus('checking');
       
       toast({
         title: "Provjeravam URL...",
@@ -188,6 +269,12 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
           } else if (result.message === "server_greska") {
             errorTitle = "Greška na serveru";
             errorDescription = "Stranica ima tehnički problem. Molimo pokušajte kasnije ili koristite drugu stranicu.";
+          } else if (result.message === "nevaljan_format") {
+            errorTitle = "Nevaljan URL format";
+            errorDescription = "Molimo unesite valjan URL (npr. avaz.ba)";
+          } else if (result.message === "greska_validacije") {
+            errorTitle = "Greška validacije";
+            errorDescription = "Došlo je do greške prilikom provjere URL-a. Molimo pokušajte ponovo.";
           }
           
           toast({
@@ -200,22 +287,30 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
           setIsValidatingUrl(false);
           return;
         }
+        
+        // URL je valjan, nastavi s analizom
         setUrlStatus('valid');
         setUrlStatusDetails({ message: result.message, status: result.status });
+        setIsValidatingUrl(false);
+        
+        // Nastavi s analizom
+        onAnalyze({ type: 'url', content: formattedUrl });
+        
       } catch (error) {
         toast({
           title: "Greška pri validaciji",
           description: "Došlo je do greške prilikom provjere URL-a. Molimo pokušajte ponovo.",
           variant: "destructive"
         });
+        setUrlStatus('invalid');
+        setUrlStatusDetails({ message: "greska_validacije" });
         setIsValidatingUrl(false);
         return;
       }
-      setIsValidatingUrl(false);
+    } else {
+      // URL je već validiran kao ispravan, nastavi s analizom
+      onAnalyze({ type: 'url', content: formattedUrl });
     }
-
-    // Ako je URL okej, nastavi s analizom tako jeeeeeeeee
-    onAnalyze({ type: 'url', content: formattedUrl });
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -318,6 +413,20 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
               <p className="text-xs mt-1">Tehnički problem na stranici.</p>
             </div>
           );
+        } else if (urlStatusDetails.message === "nevaljan_format") {
+          return (
+            <div className="text-sm text-red-600">
+              <p className="font-medium">Nevaljan URL format</p>
+              <p className="text-xs mt-1">Unesite valjan URL (npr. avaz.ba).</p>
+            </div>
+          );
+        } else if (urlStatusDetails.message === "greska_validacije") {
+          return (
+            <div className="text-sm text-red-600">
+              <p className="font-medium">Greška validacije</p>
+              <p className="text-xs mt-1">Pokušajte ponovo za nekoliko sekundi.</p>
+            </div>
+          );
         } else {
           return <p className="text-sm text-red-600">URL nije dostupan ili ne postoji</p>;
         }
@@ -361,7 +470,7 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
                     <Input
                       id="url"
                       type="url"
-                      placeholder="npr. https://avaz.ba"
+                      placeholder="https://android.com"
                       value={url}
                       onChange={(e) => handleUrlChange(e.target.value)}
                       disabled={isUrlDisabled}
@@ -465,15 +574,6 @@ const AnalysisForm = ({ onAnalyze, isAnalyzing }: AnalysisFormProps) => {
                     </Button>
                   </div>
                 )}
-
-                <div className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg border-l-4 border-primary/50">
-                  <p className="font-semibold mb-2">Savjeti za HTML upload:</p>
-                  <ul className="list-disc pl-5 space-y-1">
-                    <li>Sačuvajte web stranicu kao "Complete HTML" iz browsera</li>
-                    <li>Možete koristiti "Ctrl+S" na bilo kojoj stranici</li>
-                    <li>Fajl treba da ima .html ili .htm ekstenziju</li>
-                  </ul>
-                </div>
               </div>
             </TabsContent>
           </Tabs>

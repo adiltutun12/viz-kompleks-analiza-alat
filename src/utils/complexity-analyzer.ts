@@ -27,6 +27,8 @@ export class ComplexityAnalyzer {
   }
   
   async analyzeFromUrl(url: string): Promise<ComplexityMetrics> {
+    let lastError: Error | null = null;
+    
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
         console.log(`Pokušaj ${attempt}/3 za dohvaćanje ${url}`);
@@ -35,12 +37,13 @@ export class ComplexityAnalyzer {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
-          },
-          timeout: 10000 // 10 sekundi timeout
+          }
         });
         
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          const errorData = await response.json().catch(() => ({}));
+          const errorMessage = errorData.error || `HTTP ${response.status}: ${response.statusText}`;
+          throw new Error(errorMessage);
         }
         
         const data = await response.json();
@@ -52,9 +55,19 @@ export class ComplexityAnalyzer {
           throw new Error(data.error || 'Backend returned no HTML data');
         }
       } catch (error) {
-        console.error(`Pokušaj ${attempt}/3 neuspješan:`, error.message);
+        lastError = error instanceof Error ? error : new Error(String(error));
+        console.error(`Pokušaj ${attempt}/3 neuspješan:`, lastError.message);
         
-        // Ako nije zadnji pokušaj, čekam prije novog pokušaja
+        // Ako je greška povezana sa serverom (ne mrežom), ne pokušavaj ponovno
+        if (lastError.message.includes('HTTP 403') || 
+            lastError.message.includes('HTTP 404') || 
+            lastError.message.includes('ENOTFOUND') ||
+            lastError.message.includes('Connection refused')) {
+          console.log('Greška servera ili mrežne greške - prekidam pokušaje');
+          break;
+        }
+        
+        // Ako nije zadnji pokušaj, čekaj prije novog pokušaja
         if (attempt < 3) {
           console.log(`Čekam ${attempt} sekunde prije novog pokušaja...`);
           await new Promise(resolve => setTimeout(resolve, attempt * 1000));
@@ -62,9 +75,16 @@ export class ComplexityAnalyzer {
       }
     }
     
-    // Svi pokušaji neuspješni - koristim mock podatke
+    // Svi pokušaji neuspješni - ponudi korisniku mock podatke
     console.error('Svi pokušaji neuspješni, koristim mock podatke');
-    return this.createMockData(url);
+    console.warn('Prikazujem simulirane podatke zbog nedostupnosti stranice');
+    
+    // Dodaj flag da označimo da su mock podaci
+    const mockData = this.createMockData(url);
+    (mockData as any)._isMockData = true;
+    (mockData as any)._originalError = lastError?.message;
+    
+    return mockData;
   }
   
   analyzeFromHtml(htmlContent: string): ComplexityMetrics {

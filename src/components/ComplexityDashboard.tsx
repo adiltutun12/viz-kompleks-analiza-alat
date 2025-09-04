@@ -10,10 +10,12 @@ import {
   Palette,
   TrendingUp,
   Layers,
-  Grid3X3
+  Grid3X3,
+  AlertTriangle
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ComplexityDashboardProps {
   metrics: ComplexityMetrics;
@@ -28,15 +30,28 @@ const ComplexityDashboard = ({ metrics, url }: ComplexityDashboardProps) => {
   };
 
   const complexity = getComplexityLevel(metrics.complexityScore);
+  const isMockData = (metrics as any)._isMockData;
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Mock Data Warning */}
+      {isMockData && (
+        <Alert className="border-amber-200 bg-amber-50">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800">
+            <strong>Simulirani podaci:</strong> Ne mogu dohvatiti stvarnu web stranicu, prikazujem simulirane rezultate na osnovu URL-a. 
+            Za tačnu analizu pokušajte s drugom stranicom ili uploadajte HTML fajl.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header */}
       <div className="text-center space-y-2">
         <h2 className="text-3xl font-bold">Rezultati Analize</h2>
         {url && (
           <p className="text-muted-foreground">
             Analizirano: <span className="text-primary font-medium">{url}</span>
+            {isMockData && <span className="text-amber-600 ml-2 text-sm">(simulirani podaci)</span>}
           </p>
         )}
       </div>

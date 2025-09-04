@@ -1,4 +1,3 @@
-
 const express = require('express');
 const cors = require('cors');
 const https = require('https');
@@ -10,10 +9,10 @@ let fetch;
   try {
     const fetchModule = await import('node-fetch');
     fetch = fetchModule.default;
-    console.log('✅ node-fetch loaded successfully');
+    console.log('node-fetch loaded successfully');
   } catch (error) {
-    console.error('❌ Failed to load node-fetch:', error.message);
-    console.log('📝 Try: npm install node-fetch@2');
+    console.error('Failed to load node-fetch:', error.message);
+    console.log('Try: npm install node-fetch@2');
     process.exit(1);
   }
 })();
@@ -158,9 +157,23 @@ app.get('/api/validate', ensureFetch, async (req, res) => {
     return res.status(400).json({ error: 'URL parameter is required' });
   }
 
+  // Očisti URL od razmaka
+  url = url.trim();
+
   // Auto-dodaj https:// ako nema protokol
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
     url = 'https://' + url;
+  }
+
+  // Dodatna provjera - ako korisnik samo kuca "https" pokušaj riješiti
+  if (url === 'https://https' || url === 'http://https') {
+    return res.status(400).json({
+      valid: false,
+      error: 'Invalid URL format',
+      reachable: false,
+      url: url,
+      message: 'Molimo unesite kompletan URL (npr. avaz.ba)'
+    });
   }
 
   try {
@@ -355,15 +368,15 @@ app.get('/', (req, res) => {
 // Sačekaj da se fetch učita prije pokretanja servera
 setTimeout(() => {
   if (!fetch) {
-    console.error('❌ fetch still not available after 5 seconds');
-    console.log('💡 Run: npm uninstall node-fetch && npm install node-fetch@2');
+    console.error('fetch still not available after 5 seconds');
+    console.log('Run: npm uninstall node-fetch && npm install node-fetch@2');
     process.exit(1);
   }
 
   app.listen(PORT, () => {
-    console.log(`     CORS Proxy Server running on http://localhost:${PORT}`);
-    console.log(`     API endpoints:`);
-    console.log(`   - Validate: http://localhost:${PORT}/api/validate?url=www.klix.ba`);
-    console.log(`   - Health: http://localhost:${PORT}/api/health`);
+    console.log(`CORS Proxy Server running on http://localhost:${PORT}`);
+    console.log(`API endpoints:`);
+    console.log(`Validate: http://localhost:${PORT}/api/validate?url=www.klix.ba`);
+    console.log(`Health: http://localhost:${PORT}/api/health`);
   });
 }, 2000);
